@@ -1,0 +1,22 @@
+# Python bytecode and runtimes
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+venv/
+.venv/
+
+# Environment Variables
+.env
+.env.local
+
+# Configuration / System
+.DS_Store
+.idea/
+.vscode/
+
+# Docker volume storage (prevents committing stateful DB data)
+postgres_data/
+redis_data/
+chroma_data/
