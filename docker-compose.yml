@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: sentinel_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - sentinel_network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: sentinel_postgres
+    environment:
+      POSTGRES_DB: sentinel_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: securepassword123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sentinel_network
+
+  auth-service:
+    build:
+      context: ./services/auth
+    container_name: auth_service
+    ports:
+      - "8001:8000"
+    environment:
+      - JWT_SECRET=supersecretjwtkey999
+    networks:
+      - sentinel_network
+
+  orders-service:
+    build:
+      context: ./services/orders
+    container_name: orders_service
+    ports:
+      - "8002:8000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:8000
+    networks:
+      - sentinel_network
+    depends_on:
+      - auth-service
+
+  payments-service:
+    build:
+      context: ./services/payments
+    container_name: payments_service
+    ports:
+      - "8003:8000"
+    networks:
+      - sentinel_network
+
+  # NEW ADDITION: Time-series telemetry store
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: sentinel_prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - sentinel_network
+    depends_on:
+      - auth-service
+      - orders-service
+      - payments-service
+
+volumes:
+  postgres_data:
+
+networks:
+  sentinel_network:
+    driver: bridge

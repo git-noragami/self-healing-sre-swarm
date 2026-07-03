@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 5s # Check metrics every 5 seconds for fast hackathon agent loops
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'sentinel-infra'
+    static_configs:
+      - targets:
+          - 'auth-service:8000'
+          - 'orders-service:8000'
+          - 'payments-service:8000'
